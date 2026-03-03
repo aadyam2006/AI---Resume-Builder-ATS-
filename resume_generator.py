@@ -1,5 +1,11 @@
+import os
+import requests
 import random
 import re
+from dotenv import load_dotenv
+
+load_dotenv()
+HF_TOKEN = os.getenv("HF_TOKEN")
 
 ACTION_VERBS = [
     "Architected",
@@ -25,77 +31,84 @@ IMPACT_METRICS = [
     "reducing operational overhead by 30%"
 ]
 
+
 def clean_text(text):
     text = text.strip()
     text = re.sub(r'\s+', ' ', text)
     return text
 
-print("🔥 NEW BULLET GENERATOR ACTIVE 🔥")
+
+# 🔥 AI Rewrite Function (HuggingFace)
+def ai_rewrite_bullet(text):
+    API_URL = "https://api-inference.huggingface.co/models/google/flan-t5-large"
+    headers = {"Authorization": f"Bearer {HF_TOKEN}"}
+
+    prompt = f"Rewrite this resume bullet professionally with strong action verbs and measurable impact:\n{text}"
+
+    payload = {
+        "inputs": prompt,
+        "parameters": {"max_length": 100}
+    }
+
+    response = requests.post(API_URL, headers=headers, json=payload)
+
+    if response.status_code == 200:
+        result = response.json()
+        return result[0]['generated_text']
+    else:
+        return text  # fallback
+
+
 def generate_bullet(text):
     sentences = text.split(".")
     bullets = []
 
     for sentence in sentences:
         sentence = clean_text(sentence)
-        if not sentence:
-            continue
+        if sentence:
+            action = random.choice(ACTION_VERBS)
+            impact = random.choice(IMPACT_METRICS)
 
-        # Remove leading verb only (not all verbs)
-        words = sentence.split()
-        if words:
-            first_word = words[0].lower()
-            if first_word in [
-                "developed", "built", "implemented", "designed",
-                "optimized", "engineered", "created",
-                "automated", "performed", "architected",
-                "deployed"
-            ]:
-                words = words[1:]
+            base_bullet = f"{action} {sentence.lower()} {impact}."
 
-        cleaned = " ".join(words)
+            # 🔥 Pass through AI rewrite
+            improved_bullet = ai_rewrite_bullet(base_bullet)
 
-        if not cleaned:
-            continue
-
-        action = random.choice(ACTION_VERBS)
-        impact = random.choice(IMPACT_METRICS)
-
-        # Preserve acronyms like REST, ML
-        cleaned = cleaned[0].upper() + cleaned[1:]
-
-        bullet = f"• {action} {cleaned}, {impact}."
-        bullets.append(bullet)
+            bullets.append(f"• {improved_bullet}")
 
     return "\n".join(bullets)
+
+
 def format_resume(data):
-    print("🔥 ULTRA FAANG GENERATOR ACTIVE 🔥")
+    print("🔥 AI + RULE HYBRID GENERATOR ACTIVE 🔥")
 
     bullet_section = generate_bullet(data["experience_description"])
 
-    formatted_name = data["name"].strip().title()
+    resume_text = f"""
+{data['name'].title()}
+🔗 LinkedIn: {data['linkedin']}   |   🐙 GitHub: {data['github']}
+📧 {data['email']}   |   📞 {data['phone']}
 
-    contact_line1 = f"🔗 LinkedIn: {data['linkedin']}   |   🐙 GitHub: {data['github']}"
-    contact_line2 = f"📧 {data['email']}   |   📞 {data['phone']}"
+PROFESSIONAL SUMMARY
+Results-driven AI & Backend Engineer with expertise in scalable system architecture, machine learning deployment, and high-performance REST API design.
 
-    resume_text = (
-        f"{formatted_name}\n"
-        f"{contact_line1}\n"
-        f"{contact_line2}\n\n"
-        f"PROFESSIONAL SUMMARY\n"
-        f"Results-driven AI & Backend Engineer with expertise in scalable system architecture, machine learning deployment, and high-performance REST API design. Proven ability to architect production-ready ML systems and optimize backend infrastructures.\n\n"
-        f"TECHNICAL SKILLS\n"
-        f"Languages: Python\n"
-        f"Frameworks: Flask\n"
-        f"Machine Learning: Scikit-learn, Pandas, NumPy\n"
-        f"Core Concepts: REST APIs, Feature Engineering, Model Deployment\n\n"
-        f"PROFESSIONAL EXPERIENCE\n"
-        f"{bullet_section}\n\n"
-        f"PROJECTS\n"
-        f"{data['projects']}\n\n"
-        f"EDUCATION\n"
-        f"{data['education']}\n\n"
-        f"CERTIFICATIONS\n"
-        f"{data['certifications']}"
-    )
+TECHNICAL SKILLS
+Languages: Python
+Frameworks: Flask
+Machine Learning: Scikit-learn, Pandas, NumPy
+Core Concepts: REST APIs, Feature Engineering, Model Deployment
 
-    return resume_text
+PROFESSIONAL EXPERIENCE
+{bullet_section}
+
+PROJECTS
+{data['projects']}
+
+EDUCATION
+{data['education']}
+
+CERTIFICATIONS
+{data['certifications']}
+"""
+
+    return resume_text.strip()
