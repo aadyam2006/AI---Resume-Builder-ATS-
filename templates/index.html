@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AI Resume Builder</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body class="bg-light">
+
+<div class="container mt-5 mb-5">
+
+    <div class="card shadow p-4">
+        <h2 class="text-center mb-4 fw-bold">AI Resume Builder & ATS Analyzer</h2>
+
+        <form method="POST">
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="fw-bold">Name</label>
+                    <input type="text" name="name" class="form-control">
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label class="fw-bold">Email</label>
+                    <input type="text" name="email" class="form-control">
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="fw-bold">Phone</label>
+                <input type="text" name="phone" class="form-control">
+            </div>
+            <div class="row">
+            <div class="col-md-6 mb-3">
+               <label class="fw-bold">LinkedIn</label>
+               <input type="text" name="linkedin" class="form-control">
+             </div>
+
+            <div class="col-md-6 mb-3">
+               <label class="fw-bold">GitHub</label>
+               <input type="text" name="github" class="form-control">
+             </div>
+             </div>
+
+            <div class="mb-3">
+                <label class="fw-bold">Education</label>
+                <textarea name="education" class="form-control"></textarea>
+            </div>
+
+            <div class="mb-3">
+                <label class="fw-bold">Skills</label>
+                <textarea name="skills" class="form-control"></textarea>
+            </div>
+
+            <div class="mb-3">
+                <label class="fw-bold">Experience</label>
+                <textarea name="experience_description" class="form-control"></textarea>
+            </div>
+
+            <div class="mb-3">
+                <label class="fw-bold">Projects</label>
+                <textarea name="projects" class="form-control"></textarea>
+            </div>
+
+            <div class="mb-3">
+                <label class="fw-bold">Certifications</label>
+                <textarea name="certifications" class="form-control"></textarea>
+            </div>
+
+            <div class="mb-3">
+                <label class="fw-bold">Job Description</label>
+                <textarea name="job_description" class="form-control"></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-dark w-100">Generate Resume</button>
+
+        </form>
+    </div>
+
+    {% if resume_text %}
+    <div class="card shadow mt-4 p-4">
+
+        <h4 class="fw-bold">ATS Score: {{ ats_score }}%</h4>
+
+        <div class="progress mb-4" style="height: 25px;">
+            <div class="progress-bar bg-success"
+                 role="progressbar"
+                 style="width: {{ ats_score }}%;">
+                {{ ats_score }}%
+            </div>
+        </div>
+
+        <h4 class="fw-bold">Generated Resume</h4>
+        <hr>
+
+        <div style="font-family: 'Times New Roman'; line-height: 1.6;">
+            {{ resume_text | replace('\n', '<br>') | safe }}
+        </div>
+
+        {% if matched_skills %}
+        <h5 class="mt-4 text-success fw-bold">Matched Skills</h5>
+        <ul>
+            {% for skill in matched_skills %}
+            <li>✔ {{ skill }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+
+        {% if missing_skills %}
+        <h5 class="mt-4 text-danger fw-bold">Missing Skills</h5>
+        <ul>
+            {% for skill in missing_skills %}
+            <li>✘ {{ skill }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+
+      <form method="POST" action="/download">
+    <button type="submit" class="btn btn-primary mt-3">Download PDF</button>
+</form>
+
+    </div>
+    {% endif %}
+
+</div>
+
+</body>
+</html>
